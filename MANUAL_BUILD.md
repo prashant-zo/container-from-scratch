@@ -1,4 +1,4 @@
-# Manual build: minimal Linux root (container practice)
+# Manual build: minimal Linux root (container from Scratch)
 
 This guide walks you through building a **tiny root filesystem**—the same idea as the `container-root` repo: a few binaries under `bin/`, their shared libraries under `lib/x86_64-linux-gnu/` and `lib64/`, and an empty `proc/` you mount at runtime.
 
@@ -25,7 +25,33 @@ This guide walks you through building a **tiny root filesystem**—the same idea
 |-------------|-----|
 | **Linux kernel** | You will use `chroot`, optional `unshare`, and `mount -t proc`. These are Linux features. |
 | **x86-64 (amd64)** | The paths and examples match **glibc on Debian/Ubuntu-style amd64** (`/lib/x86_64-linux-gnu`, `/lib64/ld-linux-x86-64.so.2`). |
-| **`sudo` (root)** | `chroot`, `unshare`, and mounting `proc` require elevated privileges on typical setups. |
+| **`sudo` (root)** | `chroot`, `unshare`, and mounting `procStep 1: Initialize the FilesystemYou must create the specific sub-folder architecture. Linux programs on modern Ubuntu are hardcoded to look for libraries in x86_64-linux-gnu.bashmkdir -p ~/manual-jail/{bin,lib/x86_64-linux-gnu,lib64,proc}
+cd ~/manual-jail
+Use code with caution.Step 2: The Manual Dependency LoopFor every tool you want (e.g., bash, ps, ls), follow this 3-part process:A. Copy the Binarybashcp /bin/bash bin/
+Use code with caution.B. Check Dependencies with lddRun ldd on the file you just copied:bashldd bin/bash
+Use code with caution.You will see output like this:libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x0000...)libtinfo.so.6 => /lib/x86_64-linux-gnu/libtinfo.so.6 (0x0000...)/lib64/ld-linux-x86-64.so.2 (0x0000...)C. Copy the Libraries (The Critical Part)You must mirror the source path exactly.If the path has x86_64-linux-gnu:cp /lib/x86_64-linux-gnu/libc.so.6 lib/x86_64-linux-gnu/If the path is in lib64:cp /lib64/ld-linux-x86-64.so.2 lib64/Step 3: Repeat for ps and mountRepeat Step 2 for /bin/ps and /bin/mount. This is where you solved those "whack-a-mole" errors earlier. You must copy every single line listed by ldd (except the virtual linux-vdso.so.1).Essential for ps and mount on Ubuntu 24.04:bashcp /lib/x86_64-linux-gnu/libproc2.so.0 lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libsystemd.so.0 lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libblkid.so.1 lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libmount.so.1 lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libsmartcols.so.1 lib/x86_64-linux-gnu/
+Use code with caution.Step 4: Isolation and ActivationNow that the "muscles" are in the right folders, execute the isolation:Launch:bashsudo unshare --fork --pid --mount-proc -m chroot . /bin/bash
+Use code with caution.Mount (Plug in the process list):bash# Inside the shell (bash-5.2#)
+mount -t proc proc /proc
+Use code with caution.Verify:bashps aux
+Use code with caution.Step 1: Initialize the FilesystemYou must create the specific sub-folder architecture. Linux programs on modern Ubuntu are hardcoded to look for libraries in x86_64-linux-gnu.bashmkdir -p ~/manual-jail/{bin,lib/x86_64-linux-gnu,lib64,proc}
+cd ~/manual-jail
+Use code with caution.Step 2: The Manual Dependency LoopFor every tool you want (e.g., bash, ps, ls), follow this 3-part process:A. Copy the Binarybashcp /bin/bash bin/
+Use code with caution.B. Check Dependencies with lddRun ldd on the file you just copied:bashldd bin/bash
+Use code with caution.You will see output like this:libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x0000...)libtinfo.so.6 => /lib/x86_64-linux-gnu/libtinfo.so.6 (0x0000...)/lib64/ld-linux-x86-64.so.2 (0x0000...)C. Copy the Libraries (The Critical Part)You must mirror the source path exactly.If the path has x86_64-linux-gnu:cp /lib/x86_64-linux-gnu/libc.so.6 lib/x86_64-linux-gnu/If the path is in lib64:cp /lib64/ld-linux-x86-64.so.2 lib64/Step 3: Repeat for ps and mountRepeat Step 2 for /bin/ps and /bin/mount. This is where you solved those "whack-a-mole" errors earlier. You must copy every single line listed by ldd (except the virtual linux-vdso.so.1).Essential for ps and mount on Ubuntu 24.04:bashcp /lib/x86_64-linux-gnu/libproc2.so.0 lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libsystemd.so.0 lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libblkid.so.1 lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libmount.so.1 lib/x86_64-linux-gnu/
+cp /lib/x86_64-linux-gnu/libsmartcols.so.1 lib/x86_64-linux-gnu/
+Use code with caution.Step 4: Isolation and ActivationNow that the "muscles" are in the right folders, execute the isolation:Launch:bashsudo unshare --fork --pid --mount-proc -m chroot . /bin/bash
+Use code with caution.Mount (Plug in the process list):bash# Inside the shell (bash-5.2#)
+mount -t proc proc /proc
+Use code with caution.Verify:bashps aux
+Use code with caution.` require elevated privileges on typical setups. |
 | **`bash`**, **`cp`**, **`mkdir`**, **`ldd`** | Standard on glibc-based distros. |
 
 ### macOS and Windows do **not** work for this guide (as written)
@@ -236,4 +262,8 @@ Exit the chroot with `exit` or Ctrl-D.
 
 ---
 
-*Built for learners who want to understand **why** a container needs more than a single binary—and how library paths and `/proc` fit together.*
+Author 
+
+*Prashant*
+
+
