@@ -102,7 +102,7 @@ If you already `chroot`’d in and have enough privilege, ensure the mountpoint 
 /bin/mount -t proc proc /proc
 ```
 
-In practice, `mount` inside a `chroot` often still requires **host** capabilities (e.g. `CAP_SYS_ADMIN`) or a **privileged** container. If that fails, use **host-first** mounting with `"${ROOT}/proc"` as above.
+In practice, `mount` inside a `chroot` often still requires **host** capabilities (e.g. `CAP_SYS_ADMIN`) or a **privileged** container. If that fails, use **host-first** mounting with `"${ROOT}/proc"` as above
 
 ### `chroot` (host must match libc / arch)
 
